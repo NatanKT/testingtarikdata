@@ -1,6 +1,0 @@
-[database]
-host = isi_host_database
-port = 3306
-user = isi_user
-password = isi_password
-name = isi_nama_database

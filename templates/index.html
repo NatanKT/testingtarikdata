@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Latihan Dashboard — 10 Data Terakhir</title>
+<title>Latihan Dashboard — Semua Data</title>x  
 <style>
   body { font-family: Arial, sans-serif; margin: 20px; background: #f5f7fa; color: #1e3a5f; }
   h1 { font-size: 22px; }
@@ -13,22 +13,80 @@
   th { background: #1e3a5f; color: #eaf2fa; }
   tr:nth-child(even) { background: #eef4fa; }
   .err { color: #b00020; }
+  .filter { background: #fff; border: 1px solid #bcd0e5; padding: 12px; margin-bottom: 8px; }
+  .filter label { margin-right: 4px; }
+  .filter input, .filter select { margin-right: 14px; padding: 4px 6px; }
+  .filter input[type=text] { width: 200px; }
 </style>
 </head>
 <body>
-<h1>Latihan Dashboard — 10 Data Terakhir</h1>
-{% for d in data %}
-  <h2>{{ d.judul }}</h2>
-  {% if d.error %}
-    <p class="err">Gagal membaca database: {{ d.error }}</p>
-  {% else %}
-  <table>
-    <tr>{% for c in d.kolom %}<th>{{ c }}</th>{% endfor %}</tr>
-    {% for r in d.rows %}
-    <tr>{% for v in r %}<td>{{ v if v is not none else '' }}</td>{% endfor %}</tr>
+<h1>Latihan Dashboard — Semua Data</h1>
+
+{# FORM FILTER: tanggal awal, tanggal akhir, dan BU #}
+<form class="filter" method="get" action="/">
+  <label>Dari tanggal</label>
+  <input type="date" name="mulai" value="{{ f.mulai }}">
+  <label>Sampai tanggal</label>
+  <input type="date" name="selesai" value="{{ f.selesai }}">
+  <label>BU</label>
+  <select name="bu">
+    <option value="">semua</option>
+    {% for b in daftar_bu %}
+    <option value="{{ b }}" {% if b == f.bu %}selected{% endif %}>{{ b }}</option>
     {% endfor %}
-  </table>
-  {% endif %}
+  </select>
+  <button type="submit">Tampilkan</button>
+  <button type="button" onclick="location.href='/'">Reset</button>
+  <br><br>
+  <label>Cari (saring isi tabel di layar)</label>
+  <input type="text" id="tombol-cari" oninput="saringTabel(this.value)" placeholder="contoh: Line 2 atau WF">
+</form>
+
+{# ULANGI untuk tiap sumber data (CPU, LHP, OEE) #}
+{% for d in data %}
+
+<h2>{{ d.judul }}</h2>
+
+{% if d.error %}
+{# kalau database gagal dibaca, tampilkan pesan error saja #}
+<p class="err">Gagal membaca database: {{ d.error }}</p>
+
+{% else %}
+{# kalau berhasil, gambar tabel datanya #}
+<table>
+  {# baris kepala: satu kotak <th> untuk tiap nama kolom #}
+  <tr>
+    {% for c in d.kolom %}
+    <th>{{ c }}</th>
+    {% endfor %}
+  </tr>
+
+  {# baris isi: ulangi tiap baris data, satu kotak <td> untuk tiap nilai #}
+  {% for r in d.rows %}
+  <tr>
+    {% for v in r %}
+    <td>{{ v }}</td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
 {% endfor %}
+
+<script>
+// sembunyikan baris yang tidak memuat kata yang diketik (tanpa memanggil server lagi)
+function saringTabel(kata) {
+  var cari = kata.toLowerCase();
+  var semuaTabel = document.querySelectorAll('table');
+  for (var t = 0; t < semuaTabel.length; t++) {
+    var baris = semuaTabel[t].querySelectorAll('tr');
+    for (var i = 1; i < baris.length; i++) {
+      var isi = baris[i].textContent.toLowerCase();
+      baris[i].style.display = isi.indexOf(cari) >= 0 ? '' : 'none';
+    }
+  }
+}
+</script>
 </body>
 </html>
